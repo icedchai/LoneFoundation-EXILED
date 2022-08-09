@@ -95,8 +95,9 @@ namespace LoneFoundation
         {
             if (ev.Player.Role == RoleType.FacilityGuard) 
             {
-                ev.Player.AddAmmo(AmmoType.Nato9, 90);
-                ev.Player.AddAmmo(AmmoType.Nato556, 80);
+                ev.player.ClearInventory
+                ev.Player.AddAmmo(AmmoType.Nato9, 45);
+                ev.Player.AddItem(ItemType.COM15);
             }
             if (ev.Player.Role.Team == Team.RSC||ev.Player.Role.Team==Team.CDP)
             {
