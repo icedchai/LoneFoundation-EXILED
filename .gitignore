@@ -1,5 +1,6 @@
-
-LoneFoundation/obj/
 .vs/
+LoneFoundation/obj/
 LoneFoundation/obj/Debug/LoneFoundation.csproj.AssemblyReference.cache
-LoneFoundation/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+LoneFoundation/bin
+LoneFoundation/bin/Debug
+LoneFoundation/Properties
