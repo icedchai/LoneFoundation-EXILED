@@ -367,3 +367,22 @@ FodyWeavers.xsd
 
 # NuGet
 NuGet.config
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LoneFoundation/Properties
+LoneFoundation/bin
+LoneFoundation/obj
+
