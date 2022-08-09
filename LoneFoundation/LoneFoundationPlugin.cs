@@ -38,7 +38,7 @@ namespace LoneFoundation
 
         void RegisterEvents()
         {
-            EventHandler = new EventHandlers();
+            EventHandler = new EventHandlers(this);
 
             Player.Hurting += EventHandler.PlayerAttack;
             Player.UnlockingGenerator += EventHandler.GeneratorUnlock;

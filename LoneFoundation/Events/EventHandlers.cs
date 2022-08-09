@@ -4,65 +4,79 @@ using Exiled.Events.Patches.Events.Server;
 using Exiled.API.Features.Roles;
 using Exiled.Events.EventArgs;
 using Exiled.API.Features.Items;
+using System;
+using System.Collections.Generic;
 
 namespace LoneFoundation
 {
     public class EventHandlers
     { 
-        LoneFoundationPlugin plugin;
+        private readonly LoneFoundationPlugin plugin;
+        internal EventHandlers(LoneFoundationPlugin plugin) => this.plugin = plugin;
+
+        List<Player> guards= new List<Player>();
+        
+        public bool IsOnSameTeam(Player x, Player y)
+        {
+            return (x.Role.Team == Team.CHI && y.Role.Team == Team.SCP ||
+                x.Role.Team == Team.SCP && y.Role.Team == Team.CHI ||
+
+                x.Role.Team == Team.RSC && y.Role == RoleType.FacilityGuard ||
+                x.Role.Team == Team.RSC && y.Role.Team == Team.RSC ||
+                x.Role == RoleType.FacilityGuard && y.Role == RoleType.FacilityGuard ||
+                x.Role == RoleType.FacilityGuard && y.Role.Team == Team.RSC ||
+
+                x.Role == RoleType.NtfCaptain && y.Role == RoleType.NtfCaptain ||
+                x.Role == RoleType.NtfCaptain && y.Role == RoleType.NtfSpecialist ||
+                x.Role == RoleType.NtfCaptain && y.Role == RoleType.NtfSergeant ||
+                x.Role == RoleType.NtfCaptain && y.Role == RoleType.NtfPrivate ||
+
+                x.Role == RoleType.NtfSpecialist && y.Role == RoleType.NtfCaptain ||
+                x.Role == RoleType.NtfSpecialist && y.Role == RoleType.NtfSpecialist ||
+                x.Role == RoleType.NtfSpecialist && y.Role == RoleType.NtfSergeant ||
+                x.Role == RoleType.NtfSpecialist && y.Role == RoleType.NtfPrivate ||
+
+                x.Role == RoleType.NtfSergeant && y.Role == RoleType.NtfCaptain ||
+                x.Role == RoleType.NtfSergeant && y.Role == RoleType.NtfSpecialist ||
+                x.Role == RoleType.NtfSergeant && y.Role == RoleType.NtfSergeant ||
+                x.Role == RoleType.NtfSergeant && y.Role == RoleType.NtfPrivate ||
+
+                x.Role == RoleType.NtfPrivate && y.Role == RoleType.NtfCaptain ||
+                x.Role == RoleType.NtfPrivate && y.Role == RoleType.NtfSpecialist ||
+                x.Role == RoleType.NtfPrivate && y.Role == RoleType.NtfSergeant ||
+                x.Role == RoleType.NtfPrivate && y.Role == RoleType.NtfPrivate ||
+
+
+                x.Role.Team == Team.CDP && y.Role.Team == Team.CDP);
+        }
+        
         //prevents chaos insurgency from damaging or being damaged by scps, and prevents friendly fire for scientists and facility guards, and among class d
         public void PlayerAttack(HurtingEventArgs ev)
         {
 
-            if (ev.Attacker.Role.Team == Team.CHI && ev.Target.Role.Team == Team.SCP ||
-                ev.Attacker.Role.Team == Team.SCP && ev.Target.Role.Team == Team.CHI ||
-
-                ev.Attacker.Role.Team == Team.RSC && ev.Target.Role == RoleType.FacilityGuard ||
-                ev.Attacker.Role.Team == Team.RSC && ev.Target.Role.Team == Team.RSC ||
-                ev.Attacker.Role == RoleType.FacilityGuard && ev.Target.Role == RoleType.FacilityGuard||
-                ev.Attacker.Role == RoleType.FacilityGuard && ev.Target.Role.Team == Team.RSC ||
-
-                ev.Attacker.Role == RoleType.NtfCaptain && ev.Target.Role == RoleType.NtfCaptain ||
-                ev.Attacker.Role == RoleType.NtfCaptain && ev.Target.Role == RoleType.NtfSpecialist ||
-                ev.Attacker.Role == RoleType.NtfCaptain && ev.Target.Role == RoleType.NtfSergeant ||
-                ev.Attacker.Role == RoleType.NtfCaptain && ev.Target.Role == RoleType.NtfPrivate ||
-
-                ev.Attacker.Role == RoleType.NtfSpecialist && ev.Target.Role == RoleType.NtfCaptain ||
-                ev.Attacker.Role == RoleType.NtfSpecialist && ev.Target.Role == RoleType.NtfSpecialist ||
-                ev.Attacker.Role == RoleType.NtfSpecialist && ev.Target.Role == RoleType.NtfSergeant ||
-                ev.Attacker.Role == RoleType.NtfSpecialist && ev.Target.Role == RoleType.NtfPrivate ||
-
-                ev.Attacker.Role == RoleType.NtfSergeant && ev.Target.Role == RoleType.NtfCaptain ||
-                ev.Attacker.Role == RoleType.NtfSergeant && ev.Target.Role == RoleType.NtfSpecialist ||
-                ev.Attacker.Role == RoleType.NtfSergeant && ev.Target.Role == RoleType.NtfSergeant ||
-                ev.Attacker.Role == RoleType.NtfSergeant && ev.Target.Role == RoleType.NtfPrivate ||
-
-                ev.Attacker.Role == RoleType.NtfPrivate && ev.Target.Role == RoleType.NtfCaptain ||
-                ev.Attacker.Role == RoleType.NtfPrivate && ev.Target.Role == RoleType.NtfSpecialist ||
-                ev.Attacker.Role == RoleType.NtfPrivate && ev.Target.Role == RoleType.NtfSergeant ||
-                ev.Attacker.Role == RoleType.NtfPrivate && ev.Target.Role == RoleType.NtfPrivate ||
-
-
-                ev.Attacker.Role.Team == Team.CDP && ev.Target.Role.Team == Team.CDP)
-            {
-                switch (plugin.Config.FriendlyFireWithinTeams)
-                {
-                    case true:
-                        ev.IsAllowed = true;
-                        break;
-                    case false:
-                        ev.IsAllowed = false;
-                        break;
+            if (IsOnSameTeam(ev.Attacker, ev.Target)){
+                    switch (plugin.Config.FriendlyFireWithinTeams)
+                    {
+                        case true:
+                            ev.IsAllowed = false;
+                            break;
+                        case false:
+                            ev.IsAllowed = true;
+                            break;
+                    }
                 }
 
-
-            }
-          
             //allows suicide
-            if (ev.Attacker==ev.Target)
+            if (ev.Attacker == ev.Target)
             {
                 ev.IsAllowed = true;
             }
+
+
+        }
+
+        public void PlayerSpawningBlood(PlacingBloodEventArgs ev)
+        {
 
         }
         public void GeneratorUnlock(UnlockingGeneratorEventArgs ev)
@@ -89,19 +103,26 @@ namespace LoneFoundation
         public void MTFAnnouncment(AnnouncingNtfEntranceEventArgs ev)
         {
             ev.IsAllowed = false;
-            Log.Info("NTF " + ev.UnitName + "-" + ev.UnitNumber + " spawned in. There are "+ev.ScpsLeft+ " SCPs left.");
         }
         public void PlayerSpawning(SpawningEventArgs ev)
         {
-            if (ev.Player.Role == RoleType.FacilityGuard) 
+            Player player = ev.Player;
+            if (ev.Player.Role == RoleType.FacilityGuard)
             {
-                ev.player.ClearInventory
-                ev.Player.AddAmmo(AmmoType.Nato9, 45);
-                ev.Player.AddItem(ItemType.COM15);
+                player.ClearInventory();
+                player.AddItem(ItemType.GrenadeFlash);
+                player.AddItem(ItemType.Radio);
+                player.AddItem(ItemType.Painkillers);
+                player.AddItem(ItemType.GunCOM18);
+                player.AddItem(ItemType.KeycardGuard);
+                player.AddItem(ItemType.ArmorLight);
+                player.AddAmmo(AmmoType.Nato9, 30);
+                guards.Add(player);
+                Log.Info(guards);
             }
-            if (ev.Player.Role.Team == Team.RSC||ev.Player.Role.Team==Team.CDP)
+            if (ev.Player.Role.Team == Team.RSC || ev.Player.Role.Team == Team.CDP)
             {
-                ev.Player.AddItem(ItemType.Flashlight);
+                player.AddItem(ItemType.Flashlight);
             }
         }
         public void PlayerEscaping(EscapingEventArgs ev)
@@ -112,11 +133,11 @@ namespace LoneFoundation
         //win conditions
         public void ServerRoundEnding(EndingRoundEventArgs ev)
         {
-            
-            bool FoundMilitant=false;
+
+            bool FoundMilitant = false;
             bool FoundGoodGuy = false;
-            bool FoundCivilian=false;
-            bool FoundPrisoner=false;
+            bool FoundCivilian = false;
+            bool FoundPrisoner = false;
             bool FoundPersonnel = false;
 
             bool GOCMilitant = false;
@@ -132,7 +153,7 @@ namespace LoneFoundation
                     continue;
                 }
 
-                if (player.Role==RoleType.FacilityGuard)
+                if (player.Role == RoleType.FacilityGuard)
                 {
                     Log.Debug("Found a Facility Guard.");
                     FoundMilitant = true;
@@ -165,7 +186,7 @@ namespace LoneFoundation
                     SCPMilitant = true;
                     SCP = true;
                 }
-                if (player.Role.Team==Team.SCP)
+                if (player.Role.Team == Team.SCP)
                 {
                     Log.Debug("Found an SCP.");
                     SCPMelee = true;
@@ -173,7 +194,7 @@ namespace LoneFoundation
 
                 }
             }
-            if (GOCMilitant && FoundPersonnel||
+            if (GOCMilitant && FoundPersonnel ||
                 SCP && FoundPersonnel)
             {
                 ev.IsAllowed = false;
@@ -184,20 +205,20 @@ namespace LoneFoundation
                 Map.Broadcast(plugin.Config.EndCardTime, plugin.Config.FoundationWinString);
 
             }
-            if (FoundPrisoner && !FoundGoodGuy&&!SCP&&!GOCMilitant)
+            if (FoundPrisoner && !FoundGoodGuy && !SCP && !GOCMilitant)
             {
                 ev.LeadingTeam = LeadingTeam.Draw;
                 Map.Broadcast(plugin.Config.EndCardTime, plugin.Config.DClassWinString);
             }
-            
-            if (SCPMelee&& !FoundPersonnel && !GOCMilitant)
+
+            if (SCPMelee && !FoundPersonnel && !GOCMilitant)
             {
                 ev.LeadingTeam = LeadingTeam.Anomalies;
 
-                 Map.Broadcast(plugin.Config.EndCardTime, plugin.Config.ChaosWinString);
+                Map.Broadcast(plugin.Config.EndCardTime, plugin.Config.ChaosWinString);
 
 
-                }
+            }
             if (GOCMilitant && !FoundPersonnel && !SCP)
             {
                 ev.LeadingTeam = LeadingTeam.ChaosInsurgency;
@@ -205,7 +226,7 @@ namespace LoneFoundation
             }
         }
 
-        }
     }
+}
 
 
