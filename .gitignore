@@ -28,7 +28,9 @@ x86/
 [Aa][Rr][Mm]64/
 bld/
 [Bb]in/
+LoneFoundation\bin
 [Oo]bj/
+LoneFoundation\obj
 [Ll]og/
 [Ll]ogs/
 
