@@ -138,7 +138,6 @@ namespace LoneFoundation
             }
             if (ev.Player.Role.Team == Team.RSC || ev.Player.Role.Team == Team.CDP || ev.Player.Role == RoleType.FacilityGuard)
             {
-                player.MaxHealth = 120;
             }
             if (ntfSpawn.Contains(ev.Player))
             {
