@@ -18,9 +18,11 @@ namespace LoneFoundation
         
         
         private List<Player> ffVictims = new List<Player>();
+        
+        //variables used for a "true" NTF wave-- a wave of tutorials spawn, which are friendly towards Foundation Personnel
         private List<Player> ntfSpawn = new List<Player>();
         private List<Player> ntfMembers = new List<Player>();
-        private bool ntfAnnouncment = false;
+        private bool trueNTFAnnouncment = false;
 
 
 
@@ -173,7 +175,7 @@ namespace LoneFoundation
             string threatoverview=string.Empty;
             ev.IsAllowed = false;
 
-            switch (ntfAnnouncment)
+            switch (trueNTFAnnouncment)
             {
                 case false:;
                     break;
@@ -187,7 +189,7 @@ namespace LoneFoundation
                         threatoverview = "awaitingrecontainment " + scps + " scpsubjects";
                     }
                     Cassie.Message("MTFunit Epsilon 11 designated NineTailedFox HasEntered allremaining "+ threatoverview);
-                    ntfAnnouncment = false;
+                        trueNTFAnnouncment = false;
                     break;
 
             }
@@ -201,10 +203,12 @@ namespace LoneFoundation
             }
             if (ev.NextKnownTeam == Respawning.SpawnableTeamType.NineTailedFox)
             {
-                if (random.Next(99) < plugin.Config.GOCtoNTFSpawnChance)
+                int i = random.Next(99);
+                if (i < plugin.Config.GOCtoNTFSpawnChance)
                 {
                     ntfSpawn.AddRange(ev.Players);
-                    ntfAnnouncment = true;
+                    trueNTFAnnouncment = true;
+                    Log.Info("Spawned an NTF wave, generated "+ i+" out of 99");
                 }
             }
         }
