@@ -10,6 +10,7 @@ namespace LoneFoundation
     public sealed class Config : IConfig
     {
         public bool IsEnabled { get; set; } = true;
+        public bool RefineryFunniesEnabled { get; set; } = true;
         public bool FriendlyFireWithinTeams { get; set; } = false;
         public int GOCtoNTFSpawnChance { get; set; } = 20;
         public ushort EndCardTime { get; set; } = 8;

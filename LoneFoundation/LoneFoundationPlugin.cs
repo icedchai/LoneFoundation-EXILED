@@ -5,6 +5,7 @@ using Player = Exiled.Events.Handlers.Player;
 using Map = Exiled.Events.Handlers.Map;
 using Server = Exiled.Events.Handlers.Server;
 using Scp096 = Exiled.Events.Handlers.Scp096;
+using ScpUpgrade = Exiled.Events.Handlers.Scp914;
 
 
 
@@ -35,8 +36,10 @@ namespace LoneFoundation
             Player.Spawning += EventHandler.PlayerSpawning;
             Player.EnteringFemurBreaker += EventHandler.PlayerFemurBreakerActivating;
             Player.Escaping += EventHandler.PlayerEscaping;
+            Player.Dying += EventHandler.PlayerDying;
             Scp096.AddingTarget += EventHandler.Scp096AddingTo096Targets;
-            Map.AnnouncingNtfEntrance += EventHandler.MapMTFAnnouncment;
+            ScpUpgrade.UpgradingPlayer += EventHandler.Scp914PlayerUpgrading;
+            Map.AnnouncingNtfEntrance += EventHandler.MapMTFAnnouncing;
             Server.RespawningTeam += EventHandler.ServerTeamRespawning;
             Server.EndingRound += EventHandler.ServerRoundEnding;
         }
@@ -48,8 +51,10 @@ namespace LoneFoundation
             Player.Spawning -= EventHandler.PlayerSpawning;
             Player.EnteringFemurBreaker -= EventHandler.PlayerFemurBreakerActivating;
             Player.Escaping -= EventHandler.PlayerEscaping;
+            Player.Dying -= EventHandler.PlayerDying;
             Scp096.AddingTarget -= EventHandler.Scp096AddingTo096Targets;
-            Map.AnnouncingNtfEntrance -= EventHandler.MapMTFAnnouncment;
+            ScpUpgrade.UpgradingPlayer -= EventHandler.Scp914PlayerUpgrading;
+            Map.AnnouncingNtfEntrance -= EventHandler.MapMTFAnnouncing;
             Server.RespawningTeam -= EventHandler.ServerTeamRespawning;
             Server.EndingRound -= EventHandler.ServerRoundEnding;
             EventHandler = null;

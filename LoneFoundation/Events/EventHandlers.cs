@@ -4,20 +4,19 @@ using Exiled.Events.Patches.Events.Server;
 using Exiled.API.Features.Roles;
 using Exiled.Events.EventArgs;
 using Exiled.API.Features.Items;
-using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace LoneFoundation
 {
     public class EventHandlers
     { 
         private readonly LoneFoundationPlugin plugin;
-        private Random random = new Random();
         internal EventHandlers(LoneFoundationPlugin plugin) => this.plugin = plugin;
         
         
         
-        private List<Player> ffVictims = new List<Player>();
+        private List<Player> children = new List<Player>();
         
         //variables used for a "true" NTF wave-- a wave of tutorials spawn, which are friendly towards Foundation Personnel
         private List<Player> ntfSpawn = new List<Player>();
@@ -68,6 +67,12 @@ namespace LoneFoundation
 
                 x.Role.Team == Team.CDP && y.Role.Team == Team.CDP);
         }
+
+        //checks if a given role is a "starting role"
+        public bool IsStartingRole(Player player)
+        {
+            return player.Role.Type == RoleType.ClassD || player.Role.Type == RoleType.FacilityGuard || player.Role.Type == RoleType.Scientist;
+        }
         
         //prevents chaos insurgency from damaging or being damaged by scps, and prevents friendly fire for scientists and facility guards, and among class d
         public void PlayerAttacking(HurtingEventArgs ev)
@@ -78,13 +83,19 @@ namespace LoneFoundation
                     {
                         case false:
                             ev.IsAllowed = false;
-                            ffVictims.Add(ev.Target);
                             break;
                         case true:
                             ev.IsAllowed = true;
                             break;
                     }
                 }
+            if (ev.Attacker.Role.Type == RoleType.Scp93953 || ev.Attacker.Role.Type == RoleType.Scp93989)
+            {
+                if (IsStartingRole(ev.Target)&&!children.Contains(ev.Target))
+                {
+                    ev.Amount = 60;
+                }
+            }
 
             //allows suicide
             if (ev.Attacker == ev.Target)
@@ -118,42 +129,43 @@ namespace LoneFoundation
         }
         public void PlayerDying(DyingEventArgs ev)
         {
-            if (ntfMembers.Contains(ev.Target))
-            {
-                ntfMembers.Remove(ev.Target);
-            }
+            ev.Target.Scale = new Vector3(1, 1, 1);
+            children.Remove(ev.Target);
+            ntfMembers.Remove(ev.Target);
+
         }
 
         public void PlayerSpawning(SpawningEventArgs ev)
         {
-            Player player = ev.Player;
             if (ev.Player.Role == RoleType.FacilityGuard)
             {
-                player.ClearInventory();
-                player.AddItem(ItemType.GrenadeFlash);
-                player.AddItem(ItemType.Radio);
-                player.AddItem(ItemType.Painkillers);
-                player.AddItem(ItemType.GunCOM18);
-                player.AddItem(ItemType.KeycardGuard);
-                player.AddItem(ItemType.ArmorLight);
-                player.AddAmmo(AmmoType.Nato9, 30);
+                ev.Player.ClearInventory();
+                ev.Player.AddItem(ItemType.GrenadeFlash);
+                ev.Player.AddItem(ItemType.Radio);
+                ev.Player.AddItem(ItemType.Painkillers);
+                ev.Player.AddItem(ItemType.GunCOM18);
+                ev.Player.AddItem(ItemType.KeycardGuard);
+                ev.Player.AddItem(ItemType.ArmorLight);
+                ev.Player.AddAmmo(AmmoType.Nato9, 30);
             }
-            if (ev.Player.Role.Team == Team.RSC || ev.Player.Role.Team == Team.CDP || ev.Player.Role == RoleType.FacilityGuard)
+            if (IsStartingRole(ev.Player))
             {
+                ev.Player.MaxHealth = 120;
+                ev.Player.Health = 120;
             }
             if (ntfSpawn.Contains(ev.Player))
             {
-                player.SetRole(RoleType.Tutorial);
-                player.ClearInventory();
-                player.AddItem(ItemType.Radio);
-                player.AddItem(ItemType.Medkit);
-                player.AddItem(ItemType.GunE11SR);
-                player.AddItem(ItemType.KeycardNTFLieutenant);
-                player.AddItem(ItemType.ArmorCombat);
-                player.AddAmmo(AmmoType.Nato9, 30);
-                player.AddAmmo(AmmoType.Nato556, 80);
-                ntfSpawn.Remove(player);
-                ntfMembers.Add(player);
+                ev.Player.SetRole(RoleType.Tutorial, SpawnReason.Respawn);
+                ev.Player.ClearInventory();
+                ev.Player.AddItem(ItemType.Radio);
+                ev.Player.AddItem(ItemType.Medkit);
+                ev.Player.AddItem(ItemType.GunE11SR);
+                ev.Player.AddItem(ItemType.KeycardNTFLieutenant);
+                ev.Player.AddItem(ItemType.ArmorCombat);
+                ev.Player.AddAmmo(AmmoType.Nato9, 30);
+                ev.Player.AddAmmo(AmmoType.Nato556, 80);
+                ntfSpawn.Remove(ev.Player);
+                ntfMembers.Add(ev.Player);
             }
         }
         public void PlayerEscaping(EscapingEventArgs ev)
@@ -167,9 +179,30 @@ namespace LoneFoundation
             if (ev.Target.Role.Team == Team.CHI)
             {
                 ev.IsAllowed = false;
+            }}
+        public void Scp914PlayerUpgrading(UpgradingPlayerEventArgs ev)
+        {
+            if (plugin.Config.RefineryFunniesEnabled)
+            {
+                if (ev.KnobSetting == Scp914.Scp914KnobSetting.Coarse && !children.Contains(ev.Player) && ev.Player.IsHuman)
+                {
+                    ev.Player.Scale = new Vector3(0.875f, 0.875f, 0.875f);
+                    ev.Player.MaxHealth = ev.Player.MaxHealth * 2 / 3;
+                    ev.Player.Health = ev.Player.Health * 2 / 3;
+                    children.Add(ev.Player);
+                }
+                else if (ev.KnobSetting == Scp914.Scp914KnobSetting.Fine && children.Contains(ev.Player))
+                {
+                    ev.Player.Scale = new Vector3(1, 1, 1);
+                    ev.Player.MaxHealth = ev.Player.MaxHealth * 3 / 2;
+                    ev.Player.Health = ev.Player.Health * 3 / 2;
+                    children.Remove(ev.Player);
+                }
+
             }
+
         }
-        public void MapMTFAnnouncment(AnnouncingNtfEntranceEventArgs ev)
+        public void MapMTFAnnouncing(AnnouncingNtfEntranceEventArgs ev)
         {
             int scps = ev.ScpsLeft;
             string threatoverview=string.Empty;
@@ -194,7 +227,6 @@ namespace LoneFoundation
 
             }
         }
-        //win conditions
         public void ServerTeamRespawning(RespawningTeamEventArgs ev)
         {
             if (ev.NextKnownTeam == Respawning.SpawnableTeamType.ChaosInsurgency)
@@ -203,13 +235,13 @@ namespace LoneFoundation
             }
             if (ev.NextKnownTeam == Respawning.SpawnableTeamType.NineTailedFox)
             {
-                int i = random.Next(99);
+                int i = Random.Range(0,99);
                 if (i < plugin.Config.GOCtoNTFSpawnChance)
                 {
                     ntfSpawn.AddRange(ev.Players);
                     trueNTFAnnouncment = true;
-                    Log.Info("Spawned an NTF wave, generated "+ i+" out of 99");
                 }
+                Log.Info("i < " + plugin.Config.GOCtoNTFSpawnChance + " == " + (i < plugin.Config.GOCtoNTFSpawnChance));
             }
         }
         public void ServerRoundEnding(EndingRoundEventArgs ev)
@@ -304,8 +336,7 @@ namespace LoneFoundation
             {
                 ev.LeadingTeam = LeadingTeam.ChaosInsurgency;
                 Map.Broadcast(plugin.Config.EndCardTime, plugin.Config.GOCWinString);
-            }
-        }
+            }}
 
     }
 }
