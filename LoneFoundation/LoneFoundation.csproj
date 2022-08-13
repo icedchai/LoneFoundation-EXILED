@@ -34,6 +34,12 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\exiled\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\..\exiled\Master\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="CommandSystem.Core">
+      <HintPath>..\..\exiled\Master\CommandSystem.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Exiled.API">
       <HintPath>..\..\exiled\EXILED\Plugins\dependencies\Exiled.API.dll</HintPath>
     </Reference>
@@ -46,6 +52,13 @@
     <Reference Include="Exiled.Loader">
       <HintPath>..\..\exiled\EXILED\Exiled.Loader.dll</HintPath>
     </Reference>
+    <Reference Include="Exiled.Permissions, Version=5.2.2.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\exiled\EXILED\Plugins\Exiled.Permissions.dll</HintPath>
+    </Reference>
+    <Reference Include="Mirror">
+      <HintPath>..\..\exiled\Master\Mirror.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -57,10 +70,14 @@
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\exiled\Master\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>..\..\exiled\Master\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="Events\EventHandlers.cs" />
+    <Compile Include="EventHandlers.cs" />
     <Compile Include="LoneFoundationPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

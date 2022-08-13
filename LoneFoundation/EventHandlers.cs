@@ -6,7 +6,8 @@ using Exiled.Events.EventArgs;
 using Exiled.API.Features.Items;
 using System.Collections.Generic;
 using UnityEngine;
-
+using MEC;
+using static LoneFoundation.API;
 namespace LoneFoundation
 {
     public class EventHandlers
@@ -14,58 +15,71 @@ namespace LoneFoundation
         private readonly LoneFoundationPlugin plugin;
         internal EventHandlers(LoneFoundationPlugin plugin) => this.plugin = plugin;
         
-        
-        
-        private List<Player> children = new List<Player>();
-        
         //variables used for a "true" NTF wave-- a wave of tutorials spawn, which are friendly towards Foundation Personnel
         private List<Player> ntfSpawn = new List<Player>();
-        private List<Player> ntfMembers = new List<Player>();
+        private List<Player> ntfPlayers = new List<Player>();
         private bool trueNTFAnnouncment = false;
 
+        private int ntfSpawned = 0;
 
 
-
-
+        public IEnumerator<float> ChildInfiniteStamina()
+        {
+            for (; ; ) //repeat the loop infinitely
+            {
+                foreach(Player player in API.GetChildren())
+                {
+                    player.ResetStamina();
+                }
+                yield return Timing.WaitForSeconds(0.01f);
+            }
+        }
 
         //checks if any two given players are on the same "team"
         public bool IsOnSameTeam(Player x, Player y)
         {
             return (x.Role.Team == Team.CHI && y.Role.Team == Team.SCP ||
+                x.Role.Team==Team.CHI&&y.Role.Team==Team.CHI||
                 x.Role.Team == Team.SCP && y.Role.Team == Team.CHI ||
 
                 x.Role.Team == Team.RSC && y.Role == RoleType.FacilityGuard ||
                 x.Role.Team == Team.RSC && y.Role.Team == Team.RSC ||
-                x.Role.Team == Team.RSC && ntfMembers.Contains(y) ||
+                x.Role.Team == Team.RSC && API.IsTrueNTF(y) ||
                 x.Role == RoleType.FacilityGuard && y.Role == RoleType.FacilityGuard ||
                 x.Role == RoleType.FacilityGuard && y.Role.Team == Team.RSC ||
-                x.Role == RoleType.FacilityGuard && ntfMembers.Contains(y) ||
-                ntfMembers.Contains(x) && y.Role == RoleType.FacilityGuard  ||
-                ntfMembers.Contains(x) &&y.Role.Team==Team.RSC||
-                ntfMembers.Contains(x) && ntfMembers.Contains(y)||
+                x.Role == RoleType.FacilityGuard && API.IsTrueNTF(y) ||
+                API.IsTrueNTF(x) && y.Role == RoleType.FacilityGuard  ||
+                API.IsTrueNTF(x) && y.Role.Team==Team.RSC||
+                API.IsTrueNTF(x) && API.IsTrueNTF(y) ||
 
-                x.Role == RoleType.NtfCaptain && y.Role == RoleType.NtfCaptain ||
-                x.Role == RoleType.NtfCaptain && y.Role == RoleType.NtfSpecialist ||
-                x.Role == RoleType.NtfCaptain && y.Role == RoleType.NtfSergeant ||
-                x.Role == RoleType.NtfCaptain && y.Role == RoleType.NtfPrivate ||
-
-                x.Role == RoleType.NtfSpecialist && y.Role == RoleType.NtfCaptain ||
-                x.Role == RoleType.NtfSpecialist && y.Role == RoleType.NtfSpecialist ||
-                x.Role == RoleType.NtfSpecialist && y.Role == RoleType.NtfSergeant ||
-                x.Role == RoleType.NtfSpecialist && y.Role == RoleType.NtfPrivate ||
-
-                x.Role == RoleType.NtfSergeant && y.Role == RoleType.NtfCaptain ||
-                x.Role == RoleType.NtfSergeant && y.Role == RoleType.NtfSpecialist ||
-                x.Role == RoleType.NtfSergeant && y.Role == RoleType.NtfSergeant ||
-                x.Role == RoleType.NtfSergeant && y.Role == RoleType.NtfPrivate ||
-
-                x.Role == RoleType.NtfPrivate && y.Role == RoleType.NtfCaptain ||
-                x.Role == RoleType.NtfPrivate && y.Role == RoleType.NtfSpecialist ||
-                x.Role == RoleType.NtfPrivate && y.Role == RoleType.NtfSergeant ||
-                x.Role == RoleType.NtfPrivate && y.Role == RoleType.NtfPrivate ||
-
+                (x.Role.Team == Team.MTF&&x.Role!=RoleType.FacilityGuard) && (y.Role.Team == Team.MTF && y.Role != RoleType.FacilityGuard) ||
 
                 x.Role.Team == Team.CDP && y.Role.Team == Team.CDP);
+        }
+        public string ScpToNumberString(Player player)
+        {
+            switch (player.Role.Type)
+            {
+                case RoleType.Scp049:
+                    return "0 4 9";
+                case RoleType.Scp079:
+                    return "0 7 9";
+                case RoleType.Scp096:
+                    return "0 9 6";
+                case RoleType.Scp106:
+                    return "1 0 6";
+                case RoleType.Scp173:
+                    return "1 7 3";
+            }
+            if (player.Role.Type.Is939())
+            {
+                return "9 3 9";
+            }
+            return null;
+        }
+        internal static string FormatArguments(System.ArraySegment<string> arguments, int v)
+        {
+            throw new System.NotImplementedException();
         }
 
         //checks if a given role is a "starting role"
@@ -75,7 +89,7 @@ namespace LoneFoundation
         }
         
         //prevents chaos insurgency from damaging or being damaged by scps, and prevents friendly fire for scientists and facility guards, and among class d
-        public void PlayerAttacking(HurtingEventArgs ev)
+        public void PlayerHurting(HurtingEventArgs ev)
         {
 
             if (IsOnSameTeam(ev.Attacker, ev.Target)){
@@ -91,10 +105,7 @@ namespace LoneFoundation
                 }
             if (ev.Attacker.Role.Type == RoleType.Scp93953 || ev.Attacker.Role.Type == RoleType.Scp93989)
             {
-                if (IsStartingRole(ev.Target)&&!children.Contains(ev.Target))
-                {
-                    ev.Amount = 60;
-                }
+                ev.Amount = ev.Target.MaxHealth / 2;
             }
 
             //allows suicide
@@ -106,21 +117,21 @@ namespace LoneFoundation
 
         }
         //the next three are to prevent chaos insurgency from utilizing the various unique ways to kill certain SCPs, unless forced to
-        public void PlayerGeneratorUnlocking(UnlockingGeneratorEventArgs ev)
+        public void PlayerUnlockingGenerator(UnlockingGeneratorEventArgs ev)
         {
             if (ev.Player.Role.Team == Team.CHI)
             {
                 ev.IsAllowed = false;
             }
         }
-        public void PlayerGeneratorActivating(ActivatingGeneratorEventArgs ev)
+        public void PlayerActivatingGenerator(ActivatingGeneratorEventArgs ev)
         {
             if (ev.Player.Role.Team == Team.CHI)
             {
                 ev.IsAllowed = false;
             }
         }
-        public void PlayerFemurBreakerActivating(EnteringFemurBreakerEventArgs ev)
+        public void PlayerEnteringFemurBreaker(EnteringFemurBreakerEventArgs ev)
         {
             if (ev.Player.Role.Team == Team.CHI && !ev.Player.IsCuffed)
             {
@@ -130,9 +141,15 @@ namespace LoneFoundation
         public void PlayerDying(DyingEventArgs ev)
         {
             ev.Target.Scale = new Vector3(1, 1, 1);
-            children.Remove(ev.Target);
-            ntfMembers.Remove(ev.Target);
+            ev.Target.SessionVariables.Remove("Child");
+            ev.Target.SessionVariables.Remove("TrueNTF");
 
+        }
+        public void PlayerChangingRole(ChangingRoleEventArgs ev)
+        {
+            ev.Player.Scale = new Vector3(1, 1, 1);
+            ev.Player.SessionVariables.Remove("Child");
+            ev.Player.SessionVariables.Remove("TrueNTF");
         }
 
         public void PlayerSpawning(SpawningEventArgs ev)
@@ -165,44 +182,54 @@ namespace LoneFoundation
                 ev.Player.AddAmmo(AmmoType.Nato9, 30);
                 ev.Player.AddAmmo(AmmoType.Nato556, 80);
                 ntfSpawn.Remove(ev.Player);
-                ntfMembers.Add(ev.Player);
+                ntfPlayers.Add(ev.Player);
+                ev.Player.SessionVariables.Add("TrueNTF", null);
+                ntfSpawned++;
             }
         }
         public void PlayerEscaping(EscapingEventArgs ev)
         {
+
+            if (API.IsTrueNTF(ev.Player))
+            {
+                ntfSpawn.Add(ev.Player);
+                ev.NewRole = RoleType.Tutorial;
+            }
             ev.IsAllowed = false;
             
         }
 
-        public void Scp096AddingTo096Targets(AddingTargetEventArgs ev)
+        public void Scp096AddingTarget(AddingTargetEventArgs ev)
         {
             if (ev.Target.Role.Team == Team.CHI)
             {
                 ev.IsAllowed = false;
             }}
-        public void Scp914PlayerUpgrading(UpgradingPlayerEventArgs ev)
+        public void Scp914UpgradingPlayer(UpgradingPlayerEventArgs ev)
         {
             if (plugin.Config.RefineryFunniesEnabled)
             {
-                if (ev.KnobSetting == Scp914.Scp914KnobSetting.Coarse && !children.Contains(ev.Player) && ev.Player.IsHuman)
+                if (ev.KnobSetting == Scp914.Scp914KnobSetting.Coarse && !API.IsChild(ev.Player) && ev.Player.IsHuman)
                 {
-                    ev.Player.Scale = new Vector3(0.875f, 0.875f, 0.875f);
-                    ev.Player.MaxHealth = ev.Player.MaxHealth * 2 / 3;
-                    ev.Player.Health = ev.Player.Health * 2 / 3;
-                    children.Add(ev.Player);
+                    ev.Player.Scale = new Vector3(plugin.Config.ChildSizeMultiplier[0], plugin.Config.ChildSizeMultiplier[1], plugin.Config.ChildSizeMultiplier[2]);
+                    ev.Player.MaxHealth = ev.Player.MaxHealth * plugin.Config.ChildHealthMultiplierNumerator / plugin.Config.ChildHealthMultiplierDenominator;
+                    ev.Player.Health = ev.Player.Health * plugin.Config.ChildHealthMultiplierNumerator / plugin.Config.ChildHealthMultiplierDenominator;
+                    ev.Player.SessionVariables.Add("Child", null);
+                    ev.Player.EnableEffect(EffectType.Concussed, 10);
+                    ev.Player.ResetStamina();
                 }
-                else if (ev.KnobSetting == Scp914.Scp914KnobSetting.Fine && children.Contains(ev.Player))
+                else if (ev.KnobSetting == Scp914.Scp914KnobSetting.Fine && API.IsChild(ev.Player))
                 {
                     ev.Player.Scale = new Vector3(1, 1, 1);
-                    ev.Player.MaxHealth = ev.Player.MaxHealth * 3 / 2;
-                    ev.Player.Health = ev.Player.Health * 3 / 2;
-                    children.Remove(ev.Player);
+                    ev.Player.MaxHealth = ev.Player.MaxHealth * plugin.Config.ChildHealthMultiplierDenominator / plugin.Config.ChildHealthMultiplierNumerator;
+                    ev.Player.Health = ev.Player.Health * plugin.Config.ChildHealthMultiplierDenominator / plugin.Config.ChildHealthMultiplierNumerator;
+                    ev.Player.SessionVariables.Remove("Child");
                 }
 
             }
 
         }
-        public void MapMTFAnnouncing(AnnouncingNtfEntranceEventArgs ev)
+        public void MapAnnouncingNtfEntrance(AnnouncingNtfEntranceEventArgs ev)
         {
             int scps = ev.ScpsLeft;
             string threatoverview=string.Empty;
@@ -217,9 +244,13 @@ namespace LoneFoundation
                     {
                         threatoverview = "noscpsleft";
                     }
-                    else
+                    else if(scps>1)
                     {
                         threatoverview = "awaitingrecontainment " + scps + " scpsubjects";
+                    }
+                    else
+                    {
+                        threatoverview = "awaitingrecontainment 1 scpsubject";
                     }
                     Cassie.Message("MTFunit Epsilon 11 designated NineTailedFox HasEntered allremaining "+ threatoverview);
                         trueNTFAnnouncment = false;
@@ -227,7 +258,21 @@ namespace LoneFoundation
 
             }
         }
-        public void ServerTeamRespawning(RespawningTeamEventArgs ev)
+        public void MapAnnouncingScpTermination(AnnouncingScpTerminationEventArgs ev)
+        {
+            if (ev.Killer.Role.Team == Team.MTF && ev.Killer.Role != RoleType.FacilityGuard)
+            {
+                Cassie.Message("scp " + ScpToNumberString(ev.Player) + " containedsuccessfuly by g o c");
+            } else if (ev.Killer.Role == RoleType.FacilityGuard)
+            {
+                ev.IsAllowed = true;
+            } else if (ev.Killer.SessionVariables.ContainsKey("TrueNTF"))
+            {
+                int i = ntfPlayers.IndexOf(ev.Killer);
+                Cassie.Message("scp " + ScpToNumberString(ev.Player) + " containedsuccessfully by nato_f unit "+i);
+            }
+        }
+        public void ServerRespawningTeam(RespawningTeamEventArgs ev)
         {
             if (ev.NextKnownTeam == Respawning.SpawnableTeamType.ChaosInsurgency)
             {
@@ -235,18 +280,24 @@ namespace LoneFoundation
             }
             if (ev.NextKnownTeam == Respawning.SpawnableTeamType.NineTailedFox)
             {
-                int i = Random.Range(0,99);
+                int i = Random.Range(0, 99);
+                Log.Info("i < " + plugin.Config.GOCtoNTFSpawnChance + " == " + (i < plugin.Config.GOCtoNTFSpawnChance));
                 if (i < plugin.Config.GOCtoNTFSpawnChance)
                 {
                     ntfSpawn.AddRange(ev.Players);
                     trueNTFAnnouncment = true;
                 }
-                Log.Info("i < " + plugin.Config.GOCtoNTFSpawnChance + " == " + (i < plugin.Config.GOCtoNTFSpawnChance));
+
             }
+        }
+        public void ServerRoundStarted()
+        {
+            LoneFoundationPlugin.Coroutines.Add(Timing.RunCoroutine(ChildInfiniteStamina()));
         }
         public void ServerRoundEnding(EndingRoundEventArgs ev)
         {
-
+            foreach (CoroutineHandle item in LoneFoundationPlugin.Coroutines)
+                Timing.KillCoroutines(item);
             bool FoundMilitant = false;
             bool FoundGoodGuy = false;
             bool FoundCivilian = false;

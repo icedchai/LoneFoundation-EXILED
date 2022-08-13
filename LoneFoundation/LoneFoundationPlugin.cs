@@ -6,8 +6,8 @@ using Map = Exiled.Events.Handlers.Map;
 using Server = Exiled.Events.Handlers.Server;
 using Scp096 = Exiled.Events.Handlers.Scp096;
 using ScpUpgrade = Exiled.Events.Handlers.Scp914;
-
-
+using MEC;
+using System.Collections.Generic;
 
 namespace LoneFoundation
 {
@@ -16,6 +16,7 @@ namespace LoneFoundation
     {
         
         EventHandlers EventHandler;
+        public static List<CoroutineHandle> Coroutines { get; } = new List<CoroutineHandle>();
         public override void OnEnabled()
         {
             RegisterEvents();
@@ -30,32 +31,36 @@ namespace LoneFoundation
         {
             EventHandler = new EventHandlers(this);
 
-            Player.Hurting += EventHandler.PlayerAttacking;
-            Player.UnlockingGenerator += EventHandler.PlayerGeneratorUnlocking;
-            Player.ActivatingGenerator += EventHandler.PlayerGeneratorActivating;
+            Player.Hurting += EventHandler.PlayerHurting;
+            Player.UnlockingGenerator += EventHandler.PlayerUnlockingGenerator;
+            Player.ActivatingGenerator += EventHandler.PlayerActivatingGenerator;
             Player.Spawning += EventHandler.PlayerSpawning;
-            Player.EnteringFemurBreaker += EventHandler.PlayerFemurBreakerActivating;
+            Player.EnteringFemurBreaker += EventHandler.PlayerEnteringFemurBreaker;
             Player.Escaping += EventHandler.PlayerEscaping;
             Player.Dying += EventHandler.PlayerDying;
-            Scp096.AddingTarget += EventHandler.Scp096AddingTo096Targets;
-            ScpUpgrade.UpgradingPlayer += EventHandler.Scp914PlayerUpgrading;
-            Map.AnnouncingNtfEntrance += EventHandler.MapMTFAnnouncing;
-            Server.RespawningTeam += EventHandler.ServerTeamRespawning;
+            Scp096.AddingTarget += EventHandler.Scp096AddingTarget;
+            ScpUpgrade.UpgradingPlayer += EventHandler.Scp914UpgradingPlayer;
+            Map.AnnouncingNtfEntrance += EventHandler.MapAnnouncingNtfEntrance;
+            Map.AnnouncingScpTermination += EventHandler.MapAnnouncingScpTermination;
+            Server.RespawningTeam += EventHandler.ServerRespawningTeam;
+            Server.RoundStarted += EventHandler.ServerRoundStarted;
             Server.EndingRound += EventHandler.ServerRoundEnding;
         }
         private void UnregisterEvents()
         { 
-            Player.Hurting -= EventHandler.PlayerAttacking;
-            Player.UnlockingGenerator -= EventHandler.PlayerGeneratorUnlocking;
-            Player.ActivatingGenerator -= EventHandler.PlayerGeneratorActivating;
+            Player.Hurting -= EventHandler.PlayerHurting;
+            Player.UnlockingGenerator -= EventHandler.PlayerUnlockingGenerator;
+            Player.ActivatingGenerator -= EventHandler.PlayerActivatingGenerator;
             Player.Spawning -= EventHandler.PlayerSpawning;
-            Player.EnteringFemurBreaker -= EventHandler.PlayerFemurBreakerActivating;
+            Player.EnteringFemurBreaker -= EventHandler.PlayerEnteringFemurBreaker;
             Player.Escaping -= EventHandler.PlayerEscaping;
             Player.Dying -= EventHandler.PlayerDying;
-            Scp096.AddingTarget -= EventHandler.Scp096AddingTo096Targets;
-            ScpUpgrade.UpgradingPlayer -= EventHandler.Scp914PlayerUpgrading;
-            Map.AnnouncingNtfEntrance -= EventHandler.MapMTFAnnouncing;
-            Server.RespawningTeam -= EventHandler.ServerTeamRespawning;
+            Scp096.AddingTarget -= EventHandler.Scp096AddingTarget;
+            ScpUpgrade.UpgradingPlayer -= EventHandler.Scp914UpgradingPlayer;
+            Map.AnnouncingNtfEntrance -= EventHandler.MapAnnouncingNtfEntrance;
+            Map.AnnouncingScpTermination -= EventHandler.MapAnnouncingScpTermination;
+            Server.RespawningTeam -= EventHandler.ServerRespawningTeam;
+            Server.RoundStarted -= EventHandler.ServerRoundStarted;
             Server.EndingRound -= EventHandler.ServerRoundEnding;
             EventHandler = null;
         }
