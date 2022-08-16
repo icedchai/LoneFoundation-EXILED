@@ -43,6 +43,10 @@
     <Reference Include="Exiled.API">
       <HintPath>..\..\exiled\EXILED\Plugins\dependencies\Exiled.API.dll</HintPath>
     </Reference>
+    <Reference Include="Exiled.CustomItems, Version=5.2.2.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\exiled\EXILED\Plugins\Exiled.CustomItems.dll</HintPath>
+    </Reference>
     <Reference Include="Exiled.CustomRoles">
       <HintPath>..\..\exiled\EXILED\Plugins\Exiled.CustomRoles.dll</HintPath>
     </Reference>

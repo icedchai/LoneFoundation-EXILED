@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using MEC;
 using static LoneFoundation.API;
+using PlayerStatsSystem;
+
 namespace LoneFoundation
 {
     public class EventHandlers
@@ -181,6 +183,7 @@ namespace LoneFoundation
                 ev.Player.AddItem(ItemType.ArmorCombat);
                 ev.Player.AddAmmo(AmmoType.Nato9, 30);
                 ev.Player.AddAmmo(AmmoType.Nato556, 80);
+                ev.Player.InfoArea &= ~PlayerInfoArea.PowerStatus;
                 ntfSpawn.Remove(ev.Player);
                 ntfPlayers.Add(ev.Player);
                 ev.Player.SessionVariables.Add("TrueNTF", null);
@@ -201,7 +204,7 @@ namespace LoneFoundation
 
         public void Scp096AddingTarget(AddingTargetEventArgs ev)
         {
-            if (ev.Target.Role.Team == Team.CHI)
+            if (ev.Target.Role.Team == Team.CHI&&!plugin.Config.FriendlyFireWithinTeams)
             {
                 ev.IsAllowed = false;
             }}
@@ -215,7 +218,7 @@ namespace LoneFoundation
                     ev.Player.MaxHealth = ev.Player.MaxHealth * plugin.Config.ChildHealthMultiplierNumerator / plugin.Config.ChildHealthMultiplierDenominator;
                     ev.Player.Health = ev.Player.Health * plugin.Config.ChildHealthMultiplierNumerator / plugin.Config.ChildHealthMultiplierDenominator;
                     ev.Player.SessionVariables.Add("Child", null);
-                    ev.Player.EnableEffect(EffectType.Concussed, 10);
+                    ev.Player.EnableEffect(EffectType.Concussed, 5);
                     ev.Player.ResetStamina();
                 }
                 else if (ev.KnobSetting == Scp914.Scp914KnobSetting.Fine && API.IsChild(ev.Player))
@@ -260,26 +263,27 @@ namespace LoneFoundation
         }
         public void MapAnnouncingScpTermination(AnnouncingScpTerminationEventArgs ev)
         {
+            if (ev.Player.Role.Team != Team.SCP) ev.IsAllowed = false;
             if (ev.Killer.Role.Team == Team.MTF && ev.Killer.Role != RoleType.FacilityGuard)
             {
-                Cassie.Message("scp " + ScpToNumberString(ev.Player) + " containedsuccessfuly by g o c");
+                Cassie.Message("scp " + ScpToNumberString(ev.Player) + " terminated by g o c");
             } else if (ev.Killer.Role == RoleType.FacilityGuard)
             {
                 ev.IsAllowed = true;
             } else if (ev.Killer.SessionVariables.ContainsKey("TrueNTF"))
             {
                 int i = ntfPlayers.IndexOf(ev.Killer);
-                Cassie.Message("scp " + ScpToNumberString(ev.Player) + " containedsuccessfully by nato_f unit "+i);
+                Cassie.Message("scp " + ScpToNumberString(ev.Player) + " containedsuccessfully by ninetailedfox unit "+i);
             }
         }
         public void ServerRespawningTeam(RespawningTeamEventArgs ev)
         {
             if (ev.NextKnownTeam == Respawning.SpawnableTeamType.ChaosInsurgency)
             {
-
+                
             }
             if (ev.NextKnownTeam == Respawning.SpawnableTeamType.NineTailedFox)
-            {
+            { 
                 int i = Random.Range(0, 99);
                 Log.Info("i < " + plugin.Config.GOCtoNTFSpawnChance + " == " + (i < plugin.Config.GOCtoNTFSpawnChance));
                 if (i < plugin.Config.GOCtoNTFSpawnChance)
