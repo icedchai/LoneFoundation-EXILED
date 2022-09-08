@@ -12,6 +12,7 @@ namespace LoneFoundation
         public bool IsEnabled { get; set; } = true;
         public bool RefineryFunniesEnabled { get; set; } = true;
         public bool FriendlyFireWithinTeams { get; set; } = false;
+        public bool NTFSpawnAnnounce { get; set; } = true;
         public int GOCtoNTFSpawnChance { get; set; } = 20;
         public float[] ChildSizeMultiplier { get; set; } = new float[] { 0.9f, 0.9f, 0.9f };
         public int ChildHealthMultiplierNumerator = 3;
@@ -21,5 +22,6 @@ namespace LoneFoundation
         public string GOCWinString { get; set; } = "The GOC have completed their mission. All SCP subjects have been terminated, and all threats such as Chaos Insurgency and Foundation Personnel are gone.";
         public string ChaosWinString{ get; set; }= "The SCPs won! All Foundation and GOC members have been terminated.";
         public string FoundationWinString { get; set; }= "The Foundation is victorious! All threats such as GOC and Class-D have been eliminated. All SCPs have been contained or otherwise removed from the site.";
+        public string GOCSpawnString { get; set; } = "You are part of the GOC forces. Eliminate all SCPs and Foundation Personnel.";
     }
 }

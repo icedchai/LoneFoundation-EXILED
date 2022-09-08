@@ -38,6 +38,7 @@ namespace LoneFoundation
             Player.EnteringFemurBreaker += EventHandler.PlayerEnteringFemurBreaker;
             Player.Escaping += EventHandler.PlayerEscaping;
             Player.Dying += EventHandler.PlayerDying;
+            Player.ChangingRole += EventHandler.PlayerChangingRole;
             Scp096.AddingTarget += EventHandler.Scp096AddingTarget;
             ScpUpgrade.UpgradingPlayer += EventHandler.Scp914UpgradingPlayer;
             Map.AnnouncingNtfEntrance += EventHandler.MapAnnouncingNtfEntrance;
@@ -55,6 +56,7 @@ namespace LoneFoundation
             Player.EnteringFemurBreaker -= EventHandler.PlayerEnteringFemurBreaker;
             Player.Escaping -= EventHandler.PlayerEscaping;
             Player.Dying -= EventHandler.PlayerDying;
+            Player.ChangingRole -= EventHandler.PlayerChangingRole;
             Scp096.AddingTarget -= EventHandler.Scp096AddingTarget;
             ScpUpgrade.UpgradingPlayer -= EventHandler.Scp914UpgradingPlayer;
             Map.AnnouncingNtfEntrance -= EventHandler.MapAnnouncingNtfEntrance;
