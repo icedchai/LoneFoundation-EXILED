@@ -44,19 +44,11 @@ namespace LoneFoundation
             {RoleType.Scp93989, "939" },
         };
 
-
-        public IEnumerator<float> ChildInfiniteStamina()
+        IEnumerator<float> Wait(float sec)
         {
-            for (; ; ) //repeat the loop infinitely
-            {
-                foreach (Player player in API.GetChildren())
-                {
-                    player.ResetStamina();
-                }
-                yield return Timing.WaitForSeconds(0.01f);
-            }
+            yield return Timing.WaitForSeconds(sec);
         }
-
+        
         //checks if any two given players are on the same "team"
         public bool IsOnSameTeam(Player x, Player y)
         {
@@ -192,12 +184,6 @@ namespace LoneFoundation
         }
         public void PlayerEscaping(EscapingEventArgs ev)
         {
-
-            if (API.IsTrueNTF(ev.Player))
-            {
-                ntfSpawn.Add(ev.Player);
-                ev.NewRole = RoleType.Tutorial;
-            }
             ev.IsAllowed = false;
         }
 
@@ -219,6 +205,7 @@ namespace LoneFoundation
                     ev.Player.Health = ev.Player.Health * plugin.Config.ChildHealthMultiplierNumerator / plugin.Config.ChildHealthMultiplierDenominator;
                     ev.Player.SessionVariables.Add("Child", null);
                     ev.Player.EnableEffect(EffectType.MovementBoost, 10);
+                    ev.Player.EnableEffect(EffectType.Invigorated, 200);
                     ev.Player.EnableEffect(EffectType.Concussed, 5);
                     ev.Player.ResetStamina();
                 }
@@ -227,22 +214,8 @@ namespace LoneFoundation
                     ev.Player.Scale = new Vector3(1, 1, 1);
                     ev.Player.MaxHealth = ev.Player.MaxHealth * plugin.Config.ChildHealthMultiplierDenominator / plugin.Config.ChildHealthMultiplierNumerator;
                     ev.Player.Health = ev.Player.Health * plugin.Config.ChildHealthMultiplierDenominator / plugin.Config.ChildHealthMultiplierNumerator;
+                    ev.Player.DisableEffect(EffectType.Invigorated);
                     ev.Player.SessionVariables.Remove("Child");
-                }
-                if (ev.KnobSetting == Scp914.Scp914KnobSetting.Rough)
-                {
-                    ev.Player.EnableEffect(EffectType.Bleeding, 5);
-                    int i = Random.Range(0, 10);
-                    switch (i)
-                    {
-                        case 10:
-                            ev.Player.EnableEffect(EffectType.MovementBoost, 30);
-                            break;
-                        case 9:
-                            ev.Player.EnableEffect(EffectType.Invisible, 15);
-                            break;
-                    }
-
                 }
 
             }
@@ -335,7 +308,6 @@ namespace LoneFoundation
         }
         public void ServerRoundStarted()
         {
-            LoneFoundationPlugin.Coroutines.Add(Timing.RunCoroutine(ChildInfiniteStamina()));
         }
         public void ServerRoundEnding(EndingRoundEventArgs ev)
         {
